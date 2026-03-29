@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JobHunter Agent — Powered by TinyFish</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --green: #10b981;
+    --yellow: #f59e0b;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card: #141e30;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0f1e35 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+  }
+  .badge {
+    font-size: 0.7rem;
+    background: rgba(0,212,255,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    padding: 56px 32px 40px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+    margin-bottom: 14px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  /* ── Search Panel ── */
+  .search-panel {
+    max-width: 900px;
+    margin: 0 auto 40px;
+    padding: 0 24px;
+  }
+  .search-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 600px) { .input-row { grid-template-columns: 1fr; } }
+
+  .field label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .field input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .field input::placeholder { color: var(--muted); }
+
+  .sites-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .site-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .site-toggle input { display: none; }
+  .site-toggle.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,255,0.07);
+  }
+  .site-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .site-toggle.active .site-dot { background: var(--accent); }
+
+  .search-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), #0099bb);
+    color: #000;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .search-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .search-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── Status Panels ── */
+  .status-area {
+    max-width: 900px;
+    margin: 0 auto 24px;
+    padding: 0 24px;
+  }
+  .agent-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .agent-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: none;
+  }
+  .agent-panel.active { display: block; }
+  .agent-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .agent-site-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .status-dot.running { background: var(--accent); animation: pulse 1.2s infinite; }
+  .status-dot.done { background: var(--green); animation: none; }
+  .status-dot.error { background: var(--red); animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .agent-log {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+  .agent-log .log-line { margin-bottom: 3px; }
+  .agent-log .log-line::before { content: "→ "; color: var(--accent); }
+
+  .streaming-iframe {
+    width: 100%;
+    height: 200px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* ── Results ── */
+  .results-area {
+    max-width: 900px;
+    margin: 0 auto 60px;
+    padding: 0 24px;
+  }
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .results-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .results-count {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .export-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.07); }
+
+  /* Job Cards */
+  .jobs-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .job-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: fadeIn 0.3s ease;
+  }
+  .job-card:hover { border-color: rgba(0,212,255,0.4); transform: translateY(-2px); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .job-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .job-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .job-company {
+    font-size: 0.875rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .job-source {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .source-Indeed { background: rgba(0,120,255,0.15); color: #60a5fa; border: 1px solid rgba(0,120,255,0.3); }
+  .source-LinkedIn { background: rgba(0,119,181,0.15); color: #93c5fd; border: 1px solid rgba(0,119,181,0.3); }
+  .source-Glassdoor { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+
+  .job-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .meta-item.salary { color: var(--green); }
+  .meta-item.posted { color: var(--yellow); }
+
+  .skills-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .skill-tag {
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.3);
+    color: #c4b5fd;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .job-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .apply-btn {
+    background: linear-gradient(135deg, var(--accent), #0099bb);
+    color: #000;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .apply-btn:hover { opacity: 0.85; }
+
+  /* Empty / error states */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🐟</div>
+    JobHunter Agent
+  </div>
+  <span class="badge">Powered by TinyFish</span>
+</header>
+
+<div class="hero">
+  <h1>Find Jobs Across the Web — Instantly</h1>
+  <p>An autonomous AI agent that navigates LinkedIn, Indeed, and Glassdoor in real-time, extracts live job listings, and delivers structured results in seconds.</p>
+</div>
+
+<!-- Search Panel -->
+<div class="search-panel">
+  <div class="search-card">
+    <div class="input-row">
+      <div class="field">
+        <label>Job Title</label>
+        <input id="jobTitle" type="text" placeholder="e.g. Frontend Developer" value="Python Developer"/>
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <input id="location" type="text" placeholder="e.g. San Francisco, Remote" value="India"/>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Search Sites</label>
+      <div class="sites-row" id="sitesRow">
+        <label class="site-toggle active" data-site="Indeed">
+          <span class="site-dot"></span> Indeed
+          <input type="checkbox" value="Indeed" checked/>
+        </label>
+        <label class="site-toggle active" data-site="LinkedIn">
+          <span class="site-dot"></span> LinkedIn
+          <input type="checkbox" value="LinkedIn" checked/>
+        </label>
+        <label class="site-toggle" data-site="Glassdoor">
+          <span class="site-dot"></span> Glassdoor
+          <input type="checkbox" value="Glassdoor"/>
+        </label>
+      </div>
+    </div>
+
+    <button class="search-btn" id="searchBtn" onclick="startSearch()">
+      <span>🔍</span> Hunt for Jobs
+    </button>
+  </div>
+</div>
+
+<!-- Agent Status Panels -->
+<div class="status-area" id="statusArea" style="display:none;">
+  <div class="agent-panels" id="agentPanels"></div>
+</div>
+
+<!-- Results -->
+<div class="results-area" id="resultsArea" style="display:none;">
+  <div class="results-header">
+    <div>
+      <h2>Job Results</h2>
+      <div class="results-count" id="resultsCount"></div>
+    </div>
+    <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">All Sites</button>
+    <button class="filter-btn" data-filter="Indeed" onclick="setFilter('Indeed', this)">Indeed</button>
+    <button class="filter-btn" data-filter="LinkedIn" onclick="setFilter('LinkedIn', this)">LinkedIn</button>
+    <button class="filter-btn" data-filter="Glassdoor" onclick="setFilter('Glassdoor', this)">Glassdoor</button>
+  </div>
+
+  <div class="jobs-grid" id="jobsGrid"></div>
+</div>
+
+<div id="emptyState" style="display:none;" class="empty-state">
+  <div class="icon">🔍</div>
+  <h3>No jobs found</h3>
+  <p>Try a different job title or location, or enable more sites.</p>
+</div>
+
+<footer>
+  Built for the <strong>TinyFish $2M Pre-Accelerator Hackathon</strong> &nbsp;|&nbsp;
+  Powered by <a href="https://www.tinyfish.ai" target="_blank">TinyFish Web Agent API</a>
+</footer>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const API_BASE = "http://localhost:8000";  // Change to your deployed backend URL
+let allJobs = [];
+let currentFilter = "all";
+let panelStates = {};
+
+// ── Site Toggle ────────────────────────────────────────────────────────────
+document.querySelectorAll(".site-toggle").forEach(label => {
+  label.addEventListener("click", () => {
+    const cb = label.querySelector("input");
+    cb.checked = !cb.checked;
+    label.classList.toggle("active", cb.checked);
+  });
+});
+
+function getSelectedSites() {
+  return [...document.querySelectorAll(".site-toggle input:checked")].map(i => i.value);
+}
+
+// ── Search ─────────────────────────────────────────────────────────────────
+async function startSearch() {
+  const jobTitle = document.getElementById("jobTitle").value.trim();
+  const location = document.getElementById("location").value.trim();
+  const sites = getSelectedSites();
+
+  if (!jobTitle || !location) { alert("Please fill in job title and location."); return; }
+  if (sites.length === 0) { alert("Please select at least one site."); return; }
+
+  // Reset state
+  allJobs = [];
+  panelStates = {};
+  currentFilter = "all";
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.toggle("active", b.dataset.filter === "all"));
+
+  document.getElementById("statusArea").style.display = "block";
+  document.getElementById("resultsArea").style.display = "none";
+  document.getElementById("emptyState").style.display = "none";
+  document.getElementById("jobsGrid").innerHTML = "";
+  document.getElementById("resultsCount").textContent = "";
+
+  const btn = document.getElementById("searchBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin">⟳</span> Agents working…';
+
+  // Build agent panels
+  const panels = document.getElementById("agentPanels");
+  panels.innerHTML = "";
+  sites.forEach(site => {
+    panelStates[site] = "running";
+    panels.innerHTML += `
+      <div class="agent-panel active" id="panel-${site}">
+        <div class="agent-panel-header">
+          <div class="status-dot running" id="dot-${site}"></div>
+          <div class="agent-site-name">${site}</div>
+        </div>
+        <div class="agent-log" id="log-${site}">
+          <div class="log-line">Launching browser agent…</div>
+        </div>
+      </div>`;
+  });
+
+  // Start SSE stream
+  const params = new URLSearchParams({ job_title: jobTitle, location, sites: sites.join(",") });
+  const evtSource = new EventSource(`${API_BASE}/search?${params}`);
+
+  evtSource.onmessage = (e) => {
+    const event = JSON.parse(e.data);
+    handleEvent(event, evtSource, btn, sites);
+  };
+
+  evtSource.onerror = () => {
+    btn.disabled = false;
+    btn.innerHTML = '<span>🔍</span> Hunt for Jobs';
+    evtSource.close();
+    // For demo purposes, show mock data if backend isn't running
+    showMockData(jobTitle, location, sites);
+  };
+}
+
+function handleEvent(event, evtSource, btn, sites) {
+  const { type, site } = event;
+
+  if (type === "PROGRESS" && site) {
+    appendLog(site, event.message);
+  }
+
+  if (type === "SITE_COMPLETE" && site) {
+    const dot = document.getElementById(`dot-${site}`);
+    if (event.status === "COMPLETED" && event.result) {
+      dot.className = "status-dot done";
+      appendLog(site, `✓ Done — extracted ${(event.result.jobs || []).length} jobs`);
+      const jobs = (event.result.jobs || []).map(j => ({ ...j, _source: site }));
+      allJobs.push(...jobs);
+      renderJobs();
+    } else {
+      dot.className = "status-dot error";
+      appendLog(site, `✗ Failed or no results`);
+    }
+    panelStates[site] = "done";
+  }
+
+  if (type === "ALL_DONE") {
+    evtSource.close();
+    btn.disabled = false;
+    btn.innerHTML = '<span>🔍</span> Hunt for Jobs';
+    document.getElementById("resultsArea").style.display = "block";
+    if (allJobs.length === 0) {
+      document.getElementById("emptyState").style.display = "block";
+    }
+  }
+}
+
+function appendLog(site, msg) {
+  const log = document.getElementById(`log-${site}`);
+  if (!log || !msg) return;
+  const line = document.createElement("div");
+  line.className = "log-line";
+  line.textContent = msg.slice(0, 80);
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function renderJobs() {
+  const filtered = currentFilter === "all" ? allJobs : allJobs.filter(j => j._source === currentFilter);
+  const grid = document.getElementById("jobsGrid");
+  document.getElementById("resultsCount").textContent = `${filtered.length} jobs found across ${[...new Set(allJobs.map(j=>j._source))].join(", ")}`;
+
+  grid.innerHTML = filtered.map((job, i) => `
+    <div class="job-card" style="animation-delay:${i * 0.04}s">
+      <div class="job-card-header">
+        <div>
+          <div class="job-title">${esc(job.title || "Untitled Role")}</div>
+          <div class="job-company">${esc(job.company || "Unknown Company")}</div>
+        </div>
+        <span class="job-source source-${job._source}">${job._source}</span>
+      </div>
+      <div class="job-meta">
+        <div class="meta-item">📍 ${esc(job.location || "Not specified")}</div>
+        ${job.salary && job.salary !== "Not disclosed" ? `<div class="meta-item salary">💰 ${esc(job.salary)}</div>` : ""}
+        ${job.experience && job.experience !== "Not specified" ? `<div class="meta-item">🎯 ${esc(job.experience)}</div>` : ""}
+        ${job.posted ? `<div class="meta-item posted">🕐 ${esc(job.posted)}</div>` : ""}
+      </div>
+      ${job.skills && job.skills.length ? `
+        <div class="skills-row">
+          ${job.skills.map(s => `<span class="skill-tag">${esc(s)}</span>`).join("")}
+        </div>` : ""}
+      <div class="job-footer">
+        <a class="apply-btn" href="${esc(job.apply_url || '#')}" target="_blank" rel="noopener">
+          Apply Now ↗
+        </a>
+      </div>
+    </div>`).join("");
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderJobs();
+}
+
+function esc(str) {
+  const d = document.createElement("div");
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
+// ── Export CSV ─────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!allJobs.length) return;
+  const headers = ["Source","Title","Company","Location","Salary","Experience","Skills","Posted","Apply URL"];
+  const rows = allJobs.map(j => [
+    j._source, j.title, j.company, j.location, j.salary, j.experience,
+    (j.skills||[]).join("; "), j.posted, j.apply_url
+  ].map(v => `"${String(v||"").replace(/"/g,'""')}"`));
+  const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `jobhunter-results-${Date.now()}.csv`;
+  a.click();
+}
+
+// ── Mock Data (fallback for demo without backend) ──────────────────────────
+function showMockData(jobTitle, location, sites) {
+  document.getElementById("statusArea").style.display = "none";
+  const mockJobs = [
+    { title: `Senior ${jobTitle}`, company: "TechCorp India", location: location, salary: "₹18-28 LPA", experience: "3-5 years", skills: ["Python", "FastAPI", "Docker", "AWS", "PostgreSQL"], posted: "Today", apply_url: "#", _source: sites[0] || "Indeed" },
+    { title: `${jobTitle} Lead`, company: "Startup Hub", location: `${location} (Hybrid)`, salary: "₹22-35 LPA", experience: "5+ years", skills: ["Python", "System Design", "Microservices", "Kubernetes"], posted: "1 day ago", apply_url: "#", _source: sites[0] || "Indeed" },
+    { title: `${jobTitle} (Remote)`, company: "Global Tech Co.", location: "Remote — India", salary: "$40,000-$60,000/yr", experience: "2-4 years", skills: ["Django", "REST APIs", "React", "CI/CD"], posted: "2 days ago", apply_url: "#", _source: sites[1] || "LinkedIn" },
+    { title: `Junior ${jobTitle}`, company: "Product Studio", location: location, salary: "₹8-14 LPA", experience: "0-2 years", skills: ["Python", "Flask", "MySQL", "Git"], posted: "3 days ago", apply_url: "#", _source: sites[1] || "LinkedIn" },
+    { title: `${jobTitle} Consultant`, company: "Consulting Partners", location: `${location} / Mumbai`, salary: "₹25-40 LPA", experience: "6+ years", skills: ["Python", "Data Engineering", "Spark", "Azure"], posted: "5 days ago", apply_url: "#", _source: sites[0] || "Indeed" },
+  ];
+  allJobs = mockJobs;
+  document.getElementById("resultsArea").style.display = "block";
+
+  // Mark agent panels as done
+  sites.forEach(site => {
+    const dot = document.getElementById(`dot-${site}`);
+    if (dot) { dot.className = "status-dot done"; }
+  });
+
+  renderJobs();
+  // Show notice
+  const notice = document.createElement("div");
+  notice.style.cssText = "background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;padding:12px 16px;border-radius:8px;font-size:0.85rem;margin-bottom:16px;";
+  notice.innerHTML = "⚠️ <strong>Demo Mode:</strong> Backend not connected. Showing sample data. Start the backend with <code>uvicorn main:app --reload</code> and add your TinyFish API key to see live results.";
+  document.getElementById("resultsArea").prepend(notice);
+}
+</script>
+</body>
+</html>
